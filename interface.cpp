@@ -29,6 +29,54 @@ namespace Interface {
 		return url;
 	}
 
+	vector<string> extractUrlsFromWebPage(string pageContent) {
+		vector<string> urls;
+		regex pattern(DuckDuckGo_REGEX);
+
+		auto it = std::sregex_iterator(pageContent.begin(), pageContent.end(), pattern);
+		auto end = std::sregex_iterator();
+
+		while (it != end) {
+			std::smatch match = *it;
+			std::string url = match[1];
+			std::string titolo = match[2];
+			url = regex_replace(url, regex("&amp;"), "&");
+			url = regex_replace(url, regex("%2F"), "/");
+			url = regex_replace(url, regex("%3A"), ":");
+
+			if (url.find("/l/")) {
+				int string_start_pos = url.find("uddg=");
+				url = url.substr(string_start_pos+5);	
+				urls.push_back(url);
+			}			
+			it++;
+		}
+		return urls;
+	}
+	
+	vector<string> getUrlFromString(string urlString) {
+		vector<string> url;
+		if(urlString.find("//")) urlString = urlString.substr(urlString.find("//") +2);
+		size_t slashPos = urlString.find("/");
+
+		if (slashPos != string::npos) {
+			url.push_back(urlString.substr(0, slashPos));
+			url.push_back(urlString.substr(slashPos));
+		}
+		else {
+			url.push_back(urlString);
+			url.push_back("/"); 
+		}
+		return url;
+	}
+
+	string sanitizePage(string pageContent) {
+		pageContent = regex_replace(pageContent, regex("<head[^>]*>.*?</head>", regex_constants::icase), "");
+		pageContent = regex_replace(pageContent, regex("<script[^>]*>.*?</script>", regex_constants::icase), ""); // Remove script tags and their content
+		pageContent = regex_replace(pageContent, regex("<style[^>]*>.*?</style>", regex_constants::icase), ""); // Remove style tags and their content
+		return pageContent;
+	}
+
 	string getWebPage(vector<string> url) {
 		string pageContent = "";
 		try {
@@ -76,37 +124,10 @@ namespace Interface {
 		return pageContent;
 	}
 
-	vector<string> extractUrlsFromWebPage(string pageContent) {
-		vector<string> urls;
-		regex pattern(DuckDuckGo_REGEX);
-
-		auto it = std::sregex_iterator(pageContent.begin(), pageContent.end(), pattern);
-		auto end = std::sregex_iterator();
-
-		while (it != end) {
-			std::smatch match = *it;
-			std::string url = match[1];
-			std::string titolo = match[2];
-			url = regex_replace(url, regex("&amp;"), "&");
-			url = regex_replace(url, regex("%2F"), "/");
-			url = regex_replace(url, regex("%3A"), ":");
-
-			if (url.find("/l/")) {
-				int string_start_pos = url.find("uddg=");
-				url = url.substr(string_start_pos+5);	
-				urls.push_back(url);
-			}			
-			it++;
-		}
-		return urls;
-	}
-	
-	string sanitizePage(string pageContent) {
-		pageContent = regex_replace(pageContent, regex("<head[^>]*>.*?</head>", regex_constants::icase), "");
-		pageContent = regex_replace(pageContent, regex("<script[^>]*>.*?</script>", regex_constants::icase), ""); // Remove script tags and their content
-		pageContent = regex_replace(pageContent, regex("<style[^>]*>.*?</style>", regex_constants::icase), ""); // Remove style tags and their content
-		
-		return pageContent;
+	vector<string> searchOnline(string query) {
+		vector<string> url = getUrlFromQuery(query);
+		string page = getWebPage(url);
+		return extractUrlsFromWebPage(page);
 	}
 
 	vector<string> getUrlFromString(string urlString) {
