@@ -13,14 +13,6 @@ int main() {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
     #endif
-	auto url = Interface::getUrlFromString("https://edition.cnn.com/");
-	for (string u : url) {
-        cout << u << endl;
-    }
-	string page = Interface::getWebPage(url);
-	cout << Interface::sanitizePage(page) << endl;
-    return 0;
-
     try {
         cout << "Caricamento R2-D2 in corso..." << endl;
         Brain r2d2;

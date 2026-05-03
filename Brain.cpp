@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream> //TODO remove this after testing
 #include "Brain.h"
+#include "interface.h"
 #include "json.hpp"
 using namespace std;
 using json = nlohmann::json;
@@ -43,18 +44,6 @@ string Brain::cleanResponse(string response) {
 		return "";
     }
     return response.substr(l, r - l + 1);
-}
-
-//We will replace this in the interface with a more robust way to handle the response, but for now we will just extract the "response" field from the JSON
-string getResponse(string response) {
-	try {
-		json j = json::parse(response);
-		return j["response"];
-	}
-	catch (json::parse_error& e) {
-		cerr << "The JSON was malformed: " << e.what() << endl;
-		return "";
-	}
 }
 
 int Brain::getMaxContextSize(int size_prompt) {
@@ -111,7 +100,7 @@ string Brain::execPrompt(string prompt) {
 		"Communicate ONLY in JSON format with an 'action' field, which is the number of the action you want to perform based on the previous action list. And you need to add one or more additional field with name and type equal to the input of the chosen action"
 		", if you want to reply be aware that you may should search on the internet to have the right information before givin an answer"
 		"The JSON MUST start with '{' and finish with '}'[/ INST]";
-
+	
 	const llama_vocab* vocabulary = llama_model_get_vocab(model); // Get the model's vocabulary
 	const int size_prompt = -llama_tokenize(vocabulary, prompt.c_str(), prompt.size(), NULL, 0, true, true); //Calculate the number of tokens in the prompt
 	llama_sampler* sampler = getSampler(); // Initialize the sampler with default parameters
@@ -126,11 +115,10 @@ string Brain::execPrompt(string prompt) {
 	string response = "";
 	do {
 		response = generateResponse(prompt_tokens, context, sampler, vocabulary, size_prompt);
-	} while (getResponse(cleanResponse(response))=="");
-
+	} while (cleanResponse(response)=="");
 	llama_free(context);
 	llama_sampler_free(sampler);
-	return getResponse(cleanResponse(response));
+	return cleanResponse(response);
 }
 
 Brain::~Brain() {
