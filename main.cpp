@@ -20,7 +20,7 @@ int main() {
         system("cls");
         cout << "--- R2-D2 ONLINE ---" << endl;
         while (true) {
-            cout << ">";
+            cout << "You>";
             string user_input;
             getline(cin, user_input);
             if (user_input == "exit") {
@@ -28,7 +28,7 @@ int main() {
                 break;
             }
             string response = r2d2.execPrompt(user_input);
-            cout << "R2-D2: " << response << endl;
+            cout << "R2-D2> " << response << endl;
 		}
 	}
 	catch (exception& e) {
