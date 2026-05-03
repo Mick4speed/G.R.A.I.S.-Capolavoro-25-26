@@ -107,7 +107,10 @@ string Brain::generateResponse(vector<llama_token> prompt_tokens, llama_context*
 
 string Brain::execPrompt(string prompt) {
 	//Add prompt instruction and format
-	prompt = "[INST] This is the user prompt: " + prompt + ". You are a LLM focused on providing information. Communicate ONLY in JSON format with 'thought' and 'response' fields. The JSON MUST start with '{' and finish with '}'/ INST]";
+	prompt = "[INST] This is the user prompt: " + prompt + ". You are a friendly and empathic AI, which purpose is to help your master. You can do the sequent action: "+Interface::getActionSummary() +
+		"Communicate ONLY in JSON format with an 'action' field, which is the number of the action you want to perform based on the previous action list. And you need to add one or more additional field with name and type equal to the input of the chosen action"
+		", if you want to reply be aware that you may should search on the internet to have the right information before givin an answer"
+		"The JSON MUST start with '{' and finish with '}'[/ INST]";
 
 	const llama_vocab* vocabulary = llama_model_get_vocab(model); // Get the model's vocabulary
 	const int size_prompt = -llama_tokenize(vocabulary, prompt.c_str(), prompt.size(), NULL, 0, true, true); //Calculate the number of tokens in the prompt
