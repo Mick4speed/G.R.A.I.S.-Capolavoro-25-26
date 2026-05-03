@@ -132,6 +132,7 @@ namespace Interface {
 
 	string getActionSummary() {
 		return
+			" -1 - End Task: End of the current task given by the user, input:none, return none (void)\n"
 			" 0 - Response: Return a response to the user, input:response (string), return none (void)\n"
 			" 1 - Search Online: Use DuckDuckGo to search on the web, input:query (string), return found links (vector<string>)\n"
 			" 2 - Get Web Page: Return the content of a determined web page, input:URL (string), return web page as HTML (string)\n"
