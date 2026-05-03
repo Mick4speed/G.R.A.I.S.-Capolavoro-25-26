@@ -21,14 +21,6 @@ namespace ssl = net::ssl;			// from <boost/asio/ssl.hpp>
 using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
 namespace Interface {
-	vector<string> getUrlFromQuery(string query) {
-		replace(query.begin(), query.end(), ' ', '+');
-		vector<string> url;
-		url.push_back("html.duckduckgo.com");
-		url.push_back("/html/?q=" + query);
-		return url;
-	}
-
 	vector<string> extractUrlsFromWebPage(string pageContent) {
 		vector<string> urls;
 		regex pattern(DuckDuckGo_REGEX);
@@ -70,10 +62,17 @@ namespace Interface {
 		return url;
 	}
 
-	string sanitizePage(string pageContent) {
-		pageContent = regex_replace(pageContent, regex("<head[^>]*>.*?</head>", regex_constants::icase), "");
-		pageContent = regex_replace(pageContent, regex("<script[^>]*>.*?</script>", regex_constants::icase), ""); // Remove script tags and their content
-		pageContent = regex_replace(pageContent, regex("<style[^>]*>.*?</style>", regex_constants::icase), ""); // Remove style tags and their content
+	vector<string> getUrlFromQuery(string query) {
+		replace(query.begin(), query.end(), ' ', '+');
+		vector<string> url;
+		url.push_back("html.duckduckgo.com");
+		url.push_back("/html/?q=" + query);
+		return url;
+	}
+
+	string sanitizePage(string pageContent /*, vector<string> keywords*/) {
+		pageContent = regex_replace(pageContent, regex(R"(<p[^>]*>([\s\S]*?)</p>)"), "$1\n");
+		//TODO divide the page into chunk and search for the one which contains the keywords
 		return pageContent;
 	}
 
@@ -132,10 +131,9 @@ namespace Interface {
 
 	string getActionSummary() {
 		return
-			" -1 - End Task: End of the current task given by the user, input:none, return none (void)\n"
-			" 0 - Response: Return a response to the user, input:response (string), return none (void)\n"
+			" 0 - Response: Return a response to the user and end the task, input:response (string), return none (void)\n"
 			" 1 - Search Online: Use DuckDuckGo to search on the web, input:query (string), return found links (vector<string>)\n"
 			" 2 - Get Web Page: Return the content of a determined web page, input:URL (string), return web page as HTML (string)\n"
-			" 3 - Sanitize Page: Remove from a page the <head>, script and css, input: page as HTML (String), return sanitized page as HTML (String)\n";
+			" 3 - Get Sanitize Web Page: Maintain only usefull text from the HTML page, this text are divided into chunk and only the chunk containing keyword are then returned, meant to be passed to the AI, input:URL (string), keywords (vector<string>), return sanitized page as HTML (string)\n";
 	}
 }
