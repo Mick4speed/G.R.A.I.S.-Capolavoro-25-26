@@ -98,7 +98,7 @@ namespace Interface {
 			}
 
 			stream.handshake(ssl::stream_base::client); //Perform SSL Handshake
-			//TODO ADD OPENSSL FILES
+
 			http::request<http::string_body> request{ http::verb::get, url[1], version };
 			request.set(http::field::host, url[0]);
 			request.set(http::field::user_agent,
@@ -130,19 +130,11 @@ namespace Interface {
 		return extractUrlsFromWebPage(page);
 	}
 
-	vector<string> getUrlFromString(string urlString) {
-		vector<string> url;
-		if(urlString.find("//")) urlString = urlString.substr(urlString.find("//") +2);
-		size_t slashPos = urlString.find("/");
-
-		if (slashPos != string::npos) {
-			url.push_back(urlString.substr(0, slashPos));
-			url.push_back(urlString.substr(slashPos));
-		}
-		else {
-			url.push_back(urlString);
-			url.push_back("/"); 
-		}
-		return url;
+	string getActionSummary() {
+		return
+			" 0 - Response: Return a response to the user, input:response (string), return none (void)\n"
+			" 1 - Search Online: Use DuckDuckGo to search on the web, input:query (string), return found links (vector<string>)\n"
+			" 2 - Get Web Page: Return the content of a determined web page, input:URL (string), return web page as HTML (string)\n"
+			" 3 - Sanitize Page: Remove from a page the <head>, script and css, input: page as HTML (String), return sanitized page as HTML (String)\n";
 	}
 }
