@@ -1,0 +1,7 @@
+Package: hnswlib
+Version: 0.9.0
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 31b9a48c42ca4313b7c20db56c208fc42b0e6dc81a17bfe62515709e63e74bc0
+Description: Header-only library for fast approximate nearest neighbors
