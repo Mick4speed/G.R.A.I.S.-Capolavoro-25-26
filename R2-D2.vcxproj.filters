@@ -8,6 +8,12 @@
     <ClCompile Include="interface.cpp">
       <Filter>Interface</Filter>
     </ClCompile>
+    <ClCompile Include="RAG_Memory.cpp">
+      <Filter>Brain\RAG Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Brain">
@@ -18,6 +24,12 @@
     </Filter>
     <Filter Include="Interface">
       <UniqueIdentifier>{c65a8afb-b61d-4f32-8666-57954e670b91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Brain\RAG Memory">
+      <UniqueIdentifier>{e4bb2c32-046a-4f65-9105-aae3fb7494cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{9201ac0d-769f-4029-a176-e165144d9d06}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,5 +42,14 @@
     <ClInclude Include="interface.h">
       <Filter>Interface</Filter>
     </ClInclude>
+    <ClInclude Include="RAG_Memory.h">
+      <Filter>Brain\RAG Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Math.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="CUDA_Math.cu" />
   </ItemGroup>
 </Project>

@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 #models
 models/
+/index.bin
+/memory.db
