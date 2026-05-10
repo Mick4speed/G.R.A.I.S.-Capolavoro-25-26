@@ -18,6 +18,7 @@ static int callback_copy_to_pair(void* pair_output, int count, char** data, char
 	if (count < 2) return 0;
 	if(data[0]!=NULL) ((pair<string, string>*)pair_output)->first = data[0];
 	if(data[1] != NULL) ((pair<string, string>*)pair_output)->second = data[1];
+	return 0;
 }
 
 //copy to an int
@@ -49,7 +50,8 @@ static int callback_copy_to_int_vector(void* vector_output, int count, char** da
 bool RAG_Memory::existsIndex(std::vector<float>* query) {
 	if (hnswIndex->getCurrentElementCount() == 0) return false;
 	vector<pair<float, hnswlib::labeltype>> KNN = hnswIndex->searchKnnCloserFirst(query->data(), 1);
-	return KNN[0].first <= -0.9;
+	if (KNN.size() == 0) return false;
+	return KNN[0].first <= 0.1;
 }
 
 bool RAG_Memory::existsSQLite(int id) {
@@ -81,6 +83,7 @@ bool RAG_Memory::loadIndex() {
 	try{
 		if (file_exists("index.bin")) hnswIndex = new hnswlib::HierarchicalNSW<float>(space, "index.bin");
 		else hnswIndex = new hnswlib::HierarchicalNSW<float>(space, MAX_ELEMENTS, NODE_NEIGHBORS, EF_CONSTRUCTION, true);
+		hnswIndex->setEf(200);
 		return true;
 	}
 	catch (exception& e) {
@@ -91,13 +94,17 @@ bool RAG_Memory::loadIndex() {
 
 bool RAG_Memory::loadEmbedder() {
 	try{
+		llama_backend_init();
 		llama_model_params parameters = llama_model_default_params();
 		parameters.n_gpu_layers = GPU_LAYER;
 		model = llama_load_model_from_file(modelPath.c_str(), parameters);
-		ctx_param = llama_context_default_params();
-		ctx_param.n_ctx = 1024;
-		ctx_param.n_batch = 1024;
+		llama_context_params ctx_param = llama_context_default_params();
+		ctx_param.n_ctx = 8192;
+		ctx_param.n_batch = 8192;
 		ctx_param.embeddings = true;
+		ctx_param.pooling_type = LLAMA_POOLING_TYPE_CLS;
+		//ctx_param.n_threads = 8;
+		ctx = llama_new_context_with_model(model, ctx_param);
 		return true;
 	}
 	catch (const std::exception& e) {
@@ -126,7 +133,7 @@ bool RAG_Memory::saveIndex() {
 }
 
 bool RAG_Memory::insertToSQLite(int id, string chunk, string source, int importance) {
-	string sql = "INSERT INTO memory (ID, chunk, source, importance) VALUES (" + to_string(id) + ", '" + source + "', '" + chunk + "', + "+to_string(importance) + ");";
+	string sql = "INSERT INTO memory (ID, chunk, source, importance) VALUES (" + to_string(id) + ", '" + chunk + "', '" + source + "', + "+to_string(importance) + ");";
 	int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
 	if (rc != SQLITE_OK) {
 		cerr << "SQL error: " << sqlite3_errmsg(db) << std::endl;
@@ -147,7 +154,7 @@ bool RAG_Memory::insertToIndex(int id, vector<float>* embedding) {
 }
 
 bool RAG_Memory::removeFromSQLite(int id) {
-	string sql = "DELETE * FROM memory WHERE ID=" + to_string(id)+";";
+	string sql = "DELETE FROM memory WHERE ID=" + to_string(id)+";";
 	int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
 	if (rc != SQLITE_OK) {
 		cerr << "SQLITE error: " << sqlite3_errmsg(db) << endl;
@@ -176,7 +183,7 @@ vector<int> RAG_Memory::searchIndex(vector<float>* query) {
 	vector<pair<float, hnswlib::labeltype>> KNN = hnswIndex->searchKnnCloserFirst(query->data(), MAX_ELEMENT_RETURN);
 	vector<int> result;
 	for (auto i : KNN) {
-		if (i.first >= MAX_DISTANCE) {
+		if (i.first < 0.9) {
 			result.push_back(i.second);
 		}
 	}
@@ -190,7 +197,6 @@ pair<string, string> RAG_Memory::getChunkByID(int id) {
 	if (rc != SQLITE_OK) {
 		cerr << "SQLITE error = " << sqlite3_errmsg(db) << endl;
 		return pair<string, string>();
-		
 	}
 	return result;
 }
@@ -206,31 +212,57 @@ int RAG_Memory::getNextID() {
 }
 
 vector<float> RAG_Memory::embedString(string chunk) {
-	int n_tokens = -llama_tokenize(llama_model_get_vocab(model), chunk.c_str(), chunk.size(), nullptr, 0, true, false);
+	if (!ctx) return {};
+	const llama_vocab* vocab = llama_model_get_vocab(model);
+	// 1. Tokenizzazione
+	int n_tokens = abs(llama_tokenize(vocab, chunk.c_str(), (int)chunk.size(), nullptr, 0, true, false));
 	vector<llama_token> tokens(n_tokens);
-	llama_context* ctx = llama_init_from_model(model, ctx_param);
-	llama_tokenize(llama_model_get_vocab(model), chunk.c_str(), chunk.size(), tokens.data(), n_tokens, true, false);
-	llama_batch batch = llama_batch_get_one(tokens.data(), n_tokens);
-	llama_decode(ctx, batch);
-	const float* embd = llama_get_embeddings(ctx);
+	llama_tokenize(vocab, chunk.c_str(), (int)chunk.size(), tokens.data(), n_tokens, true, false);
+
+	// 2. Batch (Ricorda: n_tokens deve essere impostato!)
+	llama_batch batch = llama_batch_init(n_tokens, 0, 1);
+
+	for (int i = 0; i < n_tokens; i++) {
+		batch.token[i] = tokens[i];
+		batch.pos[i] = i;
+		batch.n_seq_id[i] = 1;
+		batch.seq_id[i][0] = 0;
+		batch.logits[i] = true; // Attiviamo per sicurezza su tutti, il pooling CLS farà il resto
+	}
+	batch.n_tokens = n_tokens;
+
+	if (llama_encode(ctx, batch) != 0) return {};
+
+	// 4. Recupero Embedding
+	// Prova prima _ith(ctx, 0) perché è un modello BERT (token CLS)
+	float* embd = llama_get_embeddings_seq(ctx, 0);
+
 	if (embd == nullptr) {
-		cerr << "The embedder didn't generate any embedding" << endl;
-		llama_free(ctx);
+		embd = llama_get_embeddings_ith(ctx, n_tokens-1); // Fallback al pooling globale
+	}
+
+	if (embd == nullptr) {
+		cerr << "Embedding NULL dopo encode!" << endl;
+		llama_batch_free(batch);
 		return {};
 	}
-	int n_embd = llama_n_embd(llama_get_model(ctx));
+
+	int n_embd = llama_n_embd(model);
 	vector<float> res(embd, embd + n_embd);
+	// 5. Cleanup e Ritorno
+	llama_batch_free(batch);
 	Math::normalize_vector(&res);
-	llama_free(ctx);
+
 	return res;
 }
 
 bool RAG_Memory::saveChunk(std::string chunk, std::string source, int importance) {
 	vector<float> embed = embedString(chunk);
 	if (existsIndex(&embed)) {
-		cout << "ERRRORRR EMBEDD ALREADY EXISTS" << endl;
+		cout << "ERROR EMBED ALREADY EXISTS" << endl;
 		return true;
 	}
+	cout << "EMBED DOESN'T EXIST" << endl;
 	int id = getNextID();
 	if (!(insertToIndex(id, &embed) && insertToSQLite(id, chunk, source, importance))) {
 		cerr << "Error while inserting data chunk: "<<chunk<<endl;
@@ -295,4 +327,5 @@ RAG_Memory::~RAG_Memory() {
 	if(space) delete space;
 	if(hnswIndex) delete hnswIndex;
 	if (model) llama_free_model(model);
+	if(ctx)llama_free(ctx);
 }
