@@ -3,8 +3,8 @@
 using namespace std;
 
 float Math::calculate_norm(vector<float>* vec) {
-	int res=0;
-	for (int i : *vec) {
+	float res=0;
+	for (float i : *vec) {
 		res += i * i;
 	}
 	return sqrt(res);
