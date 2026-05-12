@@ -13,12 +13,14 @@
   <ItemGroup>
     <ClCompile Include="Brain.cpp" />
     <ClCompile Include="interface.cpp" />
+    <ClCompile Include="load_to_rag.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="RAG_Memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Brain.h" />
+    <ClInclude Include="load_to_rag.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="json.hpp" />
