@@ -366,3 +366,6 @@ FodyWeavers.xsd
 models/
 /index.bin
 /memory.db
+data.parquet
+data.sqlite3
+data_lastParsedId.txt
