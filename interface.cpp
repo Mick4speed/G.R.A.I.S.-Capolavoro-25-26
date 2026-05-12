@@ -123,6 +123,10 @@ namespace Interface {
 		return pageContent;
 	}
 
+	vector <string> retrieveDataFromRAG(RAG_Memory* rag, string query) {
+		return rag->search("Query: "+query);
+	}
+
 	vector<string> searchOnline(string query) {
 		vector<string> url = getUrlFromQuery(query);
 		string page = getWebPage(url);
@@ -134,6 +138,7 @@ namespace Interface {
 			" 0 - Response: Return a response to the user and end the task, input:response (string), return none (void)\n"
 			" 1 - Search Online: Use DuckDuckGo to search on the web, input:query (string), return found links (vector<string>)\n"
 			" 2 - Get Web Page: Return the content of a determined web page, input:URL (string), return web page as HTML (string)\n"
-			" 3 - Get Sanitize Web Page: Maintain only usefull text from the HTML page, this text are divided into chunk and only the chunk containing keyword are then returned, meant to be passed to the AI, input:URL (string), keywords (vector<string>), return sanitized page as HTML (string)\n";
+			" 3 - Get Sanitize Web Page: Maintain only usefull text from the HTML page, this text are divided into chunk and only the chunk containing keyword are then returned, meant to be passed to the AI, input:URL (string), keywords (vector<string>), return sanitized page as HTML (string)\n"
+			" 4 - Retrieve data from RAG memory, input: query(string), return list of result (vector<string>)\n";
 	}
 }
