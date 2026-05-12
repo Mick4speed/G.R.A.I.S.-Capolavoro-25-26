@@ -9,9 +9,12 @@
 #include "json.hpp"
 using namespace std;
 using json = nlohmann::json;
-	
 
-Brain::Brain(){
+//TODO add RAG support
+
+Brain::Brain()
+	:rag()
+{
 	//TODO remove this when we find a better way to make the user interact with the AI
 	auto silent_log = [](ggml_log_level level, const char* text, void* user_data) {
 		(void)level; (void)user_data;
@@ -123,6 +126,9 @@ string Brain::execAction(int action, string JSON) {
 			return Interface::getWebPage(Interface::getUrlFromQuery(jsonResponse.value("URL", "")));
 		} case 3: {	//Get Sanitized Page
 			return Interface::sanitizePage(Interface::getWebPage(Interface::getUrlFromQuery(jsonResponse.value("URL", ""))));
+		} case 4: {//Return data from RAG
+			vector<string> results = Interface::retrieveDataFromRAG(&rag, jsonResponse.value("query", ""));
+			return boost::algorithm::join(results, ",");
 		} default:
 				return "Unknown Action";
 	}
@@ -182,5 +188,6 @@ Brain::~Brain() {
 	if (model != nullptr) {
 		llama_model_free(model);
 	}
+	rag.saveMemory();
 	llama_backend_free();
 }

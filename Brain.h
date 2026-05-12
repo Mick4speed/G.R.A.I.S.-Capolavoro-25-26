@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "llama.h"
+#include "RAG_Memory.h"
 
 class Brain {
 private:
@@ -11,6 +12,7 @@ private:
 	const int delete_token = 1024; // Number of tokens to delete when the context is full
 	llama_model* model; // Pointer to the LLaMA model
 	llama_sampler* getSampler();
+	RAG_Memory rag;
 	std::string cleanResponse(std::string);
 	int getMaxContextSize(int);
 	llama_context* createContext();
