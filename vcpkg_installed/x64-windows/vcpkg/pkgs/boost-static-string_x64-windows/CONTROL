@@ -1,0 +1,8 @@
+Package: boost-static-string
+Version: 1.90.0
+Port-Version: 1
+Depends: boost-assert, boost-cmake, boost-config, boost-container-hash, boost-core, boost-headers, boost-throw-exception, boost-utility
+Architecture: x64-windows
+Multi-Arch: same
+Abi: c3465469fc3809d396818f8d4821bb5003ce8574168bbf5ac838d37f9702127d
+Description: Boost static_string module

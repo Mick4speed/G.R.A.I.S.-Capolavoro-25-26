@@ -1,0 +1,8 @@
+Package: boost-beast
+Version: 1.90.0
+Port-Version: 1
+Depends: boost-asio, boost-assert, boost-bind, boost-cmake, boost-config, boost-container, boost-container-hash, boost-core, boost-endian, boost-headers, boost-intrusive, boost-logic, boost-mp11, boost-optional, boost-smart-ptr, boost-static-string, boost-system, boost-throw-exception, boost-type-index, boost-type-traits, boost-winapi
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 7a7fb83f44c9d6d860fa03bd9c08902dc6d5adbf579b21726222f723211b98d8
+Description: Boost beast module

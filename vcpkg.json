@@ -4,6 +4,9 @@
   "builtin-baseline": "77826283b4676c526da3a5c59e6717e3775ba722",
   "dependencies": [
     "sqlite3",
-    "hnswlib"
+    "hnswlib",
+    "lexbor",
+    "boost-beast",
+    "openssl"
   ]
 }

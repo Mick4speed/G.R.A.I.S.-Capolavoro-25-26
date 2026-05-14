@@ -1,0 +1,8 @@
+Package: boost-variant2
+Version: 1.90.0
+Port-Version: 1
+Depends: boost-assert, boost-cmake, boost-config, boost-headers, boost-mp11
+Architecture: x64-windows
+Multi-Arch: same
+Abi: db41bc41c5ad708b6b4d085232f0a82d57795ec065e1b7e918c80c29580cc618
+Description: Boost variant2 module

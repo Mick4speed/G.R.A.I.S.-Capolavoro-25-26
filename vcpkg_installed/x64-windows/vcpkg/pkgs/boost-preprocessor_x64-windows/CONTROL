@@ -1,0 +1,8 @@
+Package: boost-preprocessor
+Version: 1.90.0
+Port-Version: 1
+Depends: boost-cmake, boost-config, boost-headers
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 7f07a5016f3a4a4509345f0fd8503f27ea11a9c6afad1fb90bfd975badbc0b2c
+Description: Boost preprocessor module

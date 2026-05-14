@@ -1,0 +1,13 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=
+includedir=
+
+Name: lexbor
+Description: HTML Renderer library
+Version: 3.0.0
+
+Libs: "-L${libdir}" -llexbor
+Cflags: "-I${includedir}"
+
+

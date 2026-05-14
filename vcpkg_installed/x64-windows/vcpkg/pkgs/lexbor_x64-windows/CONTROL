@@ -1,0 +1,7 @@
+Package: lexbor
+Version: 3.0.0
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 8cb7c5f7504eb10c52db6410599e1b7c6110cbe3359726e525a35e85d88c8440
+Description: Lexbor is development of an open source HTML Renderer library.

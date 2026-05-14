@@ -1,0 +1,16 @@
+x64-windows/
+x64-windows/include/
+x64-windows/include/hnswlib/
+x64-windows/include/hnswlib/bruteforce.h
+x64-windows/include/hnswlib/hnswalg.h
+x64-windows/include/hnswlib/hnswlib.h
+x64-windows/include/hnswlib/space_ip.h
+x64-windows/include/hnswlib/space_l2.h
+x64-windows/include/hnswlib/stop_condition.h
+x64-windows/include/hnswlib/visited_list_pool.h
+x64-windows/share/
+x64-windows/share/hnswlib/
+x64-windows/share/hnswlib/copyright
+x64-windows/share/hnswlib/hnswlibConfig.cmake
+x64-windows/share/hnswlib/vcpkg.spdx.json
+x64-windows/share/hnswlib/vcpkg_abi_info.txt

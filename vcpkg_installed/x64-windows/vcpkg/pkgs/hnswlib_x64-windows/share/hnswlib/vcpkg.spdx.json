@@ -3,13 +3,13 @@
   "spdxVersion": "SPDX-2.2",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "documentNamespace": "https://spdx.org/spdxdocs/hnswlib-x64-windows-0.9.0-c542591a-1df9-4630-b81c-3b0535a4acdc",
-  "name": "hnswlib:x64-windows@0.9.0 31b9a48c42ca4313b7c20db56c208fc42b0e6dc81a17bfe62515709e63e74bc0",
+  "documentNamespace": "https://spdx.org/spdxdocs/hnswlib-x64-windows-0.9.0-0618cf07-380c-4cbb-8c07-f72486b81101",
+  "name": "hnswlib:x64-windows@0.9.0 87f444eafebdabd4a82b0eb5f8c948c60db240da306b7c8b0dfe7f660c2de57c",
   "creationInfo": {
     "creators": [
-      "Tool: vcpkg-2026-02-21-82f3841f4f91e8389b7c7ddf61e6733683b2f67b"
+      "Tool: vcpkg-2026-03-04-4b3e4c276b5b87a649e66341e11553e8c577459c"
     ],
-    "created": "2026-05-06T18:59:22Z"
+    "created": "2026-05-13T17:22:50Z"
   },
   "relationships": [
     {
@@ -99,7 +99,7 @@
     {
       "name": "hnswlib:x64-windows",
       "SPDXID": "SPDXRef-binary",
-      "versionInfo": "31b9a48c42ca4313b7c20db56c208fc42b0e6dc81a17bfe62515709e63e74bc0",
+      "versionInfo": "87f444eafebdabd4a82b0eb5f8c948c60db240da306b7c8b0dfe7f660c2de57c",
       "downloadLocation": "NONE",
       "licenseConcluded": "Apache-2.0",
       "licenseDeclared": "NOASSERTION",
