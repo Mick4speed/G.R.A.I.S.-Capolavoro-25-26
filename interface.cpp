@@ -12,6 +12,10 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 
+#include <lexbor/html/html.h>
+#include <lexbor/dom/interfaces/element.h>
+#include <lexbor/html/tag.h>    
+
 using namespace std;
 
 namespace beast = boost::beast;     // from <boost/beast.hpp>
@@ -19,6 +23,13 @@ namespace http = beast::http;       // from <boost/beast/http.hpp>
 namespace net = boost::asio;        // from <boost/asio.hpp>
 namespace ssl = net::ssl;			// from <boost/asio/ssl.hpp>
 using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
+
+string removeSpaces(string s) {
+	auto new_end = remove(s.begin(), s.end(), ' ');
+	s.erase(new_end, s.end());
+	return s;
+}
+
 
 namespace Interface {
 	vector<string> extractUrlsFromWebPage(string pageContent) {
@@ -70,10 +81,45 @@ namespace Interface {
 		return url;
 	}
 
-	string sanitizePage(string pageContent /*, vector<string> keywords*/) {
-		pageContent = regex_replace(pageContent, regex(R"(<p[^>]*>([\s\S]*?)</p>)"), "$1\n");
-		//TODO divide the page into chunk and search for the one which contains the keywords
-		return pageContent;
+	string analyze_HTML_Lexbor(lxb_dom_node_t* node){
+		if (node == nullptr) return "";
+		if (node->type == LXB_DOM_NODE_TYPE_ELEMENT) {
+			lxb_dom_element_t* element = lxb_dom_interface_element(node);
+			lxb_tag_id_t tag_id = lxb_dom_element_tag_id(element);
+			if (tag_id == LXB_TAG_SCRIPT || tag_id == LXB_TAG_STYLE) {
+				return "";
+			}
+		}
+		string result = "";
+		if (node->type == LXB_DOM_NODE_TYPE_TEXT) {
+			size_t len;
+			const lxb_char_t* text = lxb_dom_node_text_content(node, &len);
+			if (text) result.append((const char*)text, len);
+		}
+		
+		lxb_dom_node* child = lxb_dom_node_first_child(node);
+		while (child) {
+			result.append(analyze_HTML_Lexbor(child));
+			child = lxb_dom_node_next(child);
+		}
+
+		return result;
+	}
+
+	string sanitizePage(string pageContent) {
+		lxb_html_parser_t* parser = lxb_html_parser_create();
+		lxb_status_t status = lxb_html_parser_init(parser);
+
+		lxb_html_document_t* document = lxb_html_parse(parser, (const lxb_char_t*)pageContent.c_str(), strlen(pageContent.c_str()));
+		
+		stringstream textStream(analyze_HTML_Lexbor(lxb_dom_interface_node(document->body)));
+		string line;
+		string text;
+		while (getline(textStream, line)) {
+			string lineNoSpace = removeSpaces(line);
+			if (lineNoSpace.length() >= 20) text.append('.' + line);
+		}
+		return text;
 	}
 
 	string getWebPage(vector<string> url) {
@@ -101,9 +147,7 @@ namespace Interface {
 			http::request<http::string_body> request{ http::verb::get, url[1], version };
 			request.set(http::field::host, url[0]);
 			request.set(http::field::user_agent,
-				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-				"AppleWebKit/537.36 (KHTML, like Gecko) "
-				"Chrome/124.0.0.0 Safari/537.36"); //Mask User-Agent Field
+				"Chrome/124.0.0.0"); //Mask User-Agent Field
 
 			http::write(stream, request);
 
@@ -131,6 +175,36 @@ namespace Interface {
 		vector<string> url = getUrlFromQuery(query);
 		string page = getWebPage(url);
 		return extractUrlsFromWebPage(page);
+	}
+
+	vector<string> retrieveDataFromInternet(RAG_Memory* rag, string query) {
+		vector<string> urls = searchOnline(query);
+		urls.resize(SITE_TO_ANALIZE);
+		for (string url : urls) {
+			string data = sanitizePage(getWebPage(getUrlFromString(url)));
+			vector<string> individualPhrases;
+			while (!data.empty()) {
+				string sub = data.substr(0, data.find_first_of('.'));
+				individualPhrases.push_back(sub);
+			}
+			string chunk = individualPhrases.front();
+			for (int i = 1; i < individualPhrases.size(); i++) {
+				if (chunk.size() >= 350) {
+					rag->saveChunk(chunk, url, 60);
+					chunk = individualPhrases.at(i);
+					continue;
+				}
+				if (RAG_Memory::areChunksCorrelated(rag, chunk, individualPhrases.at(i))) {
+					chunk += individualPhrases.at(i);
+				}
+				else {
+					rag->saveChunk(chunk, url, 60);
+					chunk = individualPhrases.at(i+1);
+					i++; //skip 2 element forward
+				}
+			}
+		}
+		return retrieveDataFromRAG(rag, query);
 	}
 
 	string getActionSummary() {
