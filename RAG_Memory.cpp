@@ -4,6 +4,7 @@
 #include "RAG_Memory.h"
 #include "llama.h"
 #include "Math.h"
+#include <regex>
 #include <sqlite3.h>
 #include <hnswlib/hnswlib.h>
 using namespace std;
@@ -133,6 +134,8 @@ bool RAG_Memory::saveIndex() {
 }
 
 bool RAG_Memory::insertToSQLite(int id, string chunk, string source, int importance) {
+	chunk = regex_replace(chunk, std::regex("'"), "''");
+	source = regex_replace(source, std::regex("'"), "''");
 	string sql = "INSERT INTO memory (ID, chunk, source, importance) VALUES (" + to_string(id) + ", '" + chunk + "', '" + source + "', + "+to_string(importance) + ");";
 	int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
 	if (rc != SQLITE_OK) {
@@ -183,7 +186,7 @@ vector<int> RAG_Memory::searchIndex(vector<float>* query) {
 	vector<pair<float, hnswlib::labeltype>> KNN = hnswIndex->searchKnnCloserFirst(query->data(), MAX_ELEMENT_RETURN);
 	vector<int> result;
 	for (auto i : KNN) {
-		if (i.first < 0.9) {
+		if (i.first < 0.5) {
 			result.push_back(i.second);
 		}
 	}
@@ -294,6 +297,15 @@ int RAG_Memory::getCount() {
 		return -1;
 	}
 	return count;
+}
+
+bool RAG_Memory::areChunksCorrelated(RAG_Memory *rag, string chunk1, string chunk2) {
+	vector<float> embed1 = rag->embedString(chunk1);
+	vector<float> embed2 = rag->embedString(chunk2);
+	hnswlib::DISTFUNC<float> func = rag->space->get_dist_func();
+	void* params = rag->space->get_dist_func_param();
+	float distance = func(embed1.data(), embed2.data(), params);
+	return distance <= 0.5;
 }
 
 int RAG_Memory::freeMemory() {

@@ -49,6 +49,9 @@ public:
 	int freeMemory(); 
 	//Save the HNSW index to disk and commit any changes to the SQLite database
 	bool saveMemory();
+	//Check if two chunk are correlated (cosine distance < 4.5)
+	//TODO: IMPLEMENT THIS FEATURE
+	static bool areChunksCorrelated(RAG_Memory *rag, std::string chunk1, std::string chunk2);
 	RAG_Memory();
 	~RAG_Memory();
 };
