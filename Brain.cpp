@@ -119,14 +119,7 @@ string Brain::execAction(int action, string JSON) {
 	switch (action) {
 		case 0: {	//Return Text
 			return jsonResponse.value("response", "");
-		} case 1: {	//Search online
-			vector<string> results = Interface::searchOnline(jsonResponse.value("query", ""));
-			return boost::algorithm::join(results, ",");
-		} case 2: {	//Get Web Page
-			return Interface::getWebPage(Interface::getUrlFromQuery(jsonResponse.value("URL", "")));
-		} case 3: {	//Get Sanitized Page
-			return Interface::sanitizePage(Interface::getWebPage(Interface::getUrlFromQuery(jsonResponse.value("URL", ""))));
-		} case 4: {//Return data from RAG
+		} case 1: { //Return data from RAG
 			vector<string> results = Interface::retrieveDataFromRAG(&rag, jsonResponse.value("query", ""));
 			return boost::algorithm::join(results, ",");
 		} default:
@@ -134,6 +127,7 @@ string Brain::execAction(int action, string JSON) {
 	}
 }
 
+//TODO keep the same context but summarize it when it is full
 string Brain::execPrompt(string prompt) {
 	//Add prompt instruction and format
 	string initial_prompt = "[INST] This is the user prompt: " + prompt + ". You are a friendly and empathic AI, which purpose is to help your master. You can do the sequent action: "+Interface::getActionSummary() +
@@ -178,7 +172,7 @@ string Brain::execPrompt(string prompt) {
 		}
 	} while (current_action > 0);
 
-
+	
 	llama_free(context);
 	llama_sampler_free(sampler);
 	return response;
