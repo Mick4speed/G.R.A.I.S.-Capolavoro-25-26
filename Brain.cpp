@@ -104,37 +104,21 @@ llama_context* Brain::createContext() {
 string Brain::generateResponse(vector<llama_token> prompt_tokens, llama_context* context, llama_sampler* sampler, const llama_vocab* vocabulary) {
 	string response = "";
 	llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
-	int n_past = countTokens(context);
-	for (int i = 0; i < batch.n_tokens; ++i) {
-		batch.pos[i] = n_past + i;
-	}
-
-	if (llama_decode(context, batch) != 0) {
-		llama_free(context);
-		throw runtime_error("Failed to decode the prompt.");
-	}
-
-	n_past += batch.n_tokens;
+	char buf[256];
+	cout << "Thinking..." << endl;
 	for (int i = 0; i < output_token; i++) {
-		llama_token token_ID = llama_sampler_sample(sampler, context, -1); // Sample the next token ID from the logits
-		if (llama_vocab_is_eog(vocabulary, token_ID) || countTokens(context) >= llama_n_ctx(context)) {
-			break;
-		}
-
-		char buf[128];
-		int n = llama_token_to_piece(vocabulary, token_ID, buf, sizeof(buf), 0, true); // Convert the token ID to its corresponding text piece
-		if (n > 0) {
-			response += string(buf, n);
-		}
-
-		batch = llama_batch_get_one(&token_ID, 1);
-		batch.pos[0] = n_past;
-
 		if (llama_decode(context, batch) != 0) {
+			cerr << "Error while decoding token" << endl;
 			break;
 		}
-		n_past++;
-	}
+		//Get next token
+		llama_token token = llama_sampler_sample(sampler, context, -1);
+		if (llama_token_is_eog(vocabulary, token)) break;
+
+		int len = llama_token_to_piece(vocabulary, token, buf, sizeof(buf), 0, true);
+		if (len > 0) response.append(buf, len);
+		batch = llama_batch_get_one(&token, 1);
+		}
 	return response;
 }
 
