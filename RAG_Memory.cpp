@@ -222,7 +222,6 @@ vector<float> RAG_Memory::embedString(string chunk) {
 	vector<llama_token> tokens(n_tokens);
 	llama_tokenize(vocab, chunk.c_str(), (int)chunk.size(), tokens.data(), n_tokens, true, false);
 
-	// 2. Batch (Ricorda: n_tokens deve essere impostato!)
 	llama_batch batch = llama_batch_init(n_tokens, 0, 1);
 
 	for (int i = 0; i < n_tokens; i++) {
@@ -230,18 +229,16 @@ vector<float> RAG_Memory::embedString(string chunk) {
 		batch.pos[i] = i;
 		batch.n_seq_id[i] = 1;
 		batch.seq_id[i][0] = 0;
-		batch.logits[i] = true; // Attiviamo per sicurezza su tutti, il pooling CLS farà il resto
+		batch.logits[i] = true; 
 	}
 	batch.n_tokens = n_tokens;
 
 	if (llama_encode(ctx, batch) != 0) return {};
 
-	// 4. Recupero Embedding
-	// Prova prima _ith(ctx, 0) perché è un modello BERT (token CLS)
 	float* embd = llama_get_embeddings_seq(ctx, 0);
 
 	if (embd == nullptr) {
-		embd = llama_get_embeddings_ith(ctx, n_tokens-1); // Fallback al pooling globale
+		embd = llama_get_embeddings_ith(ctx, n_tokens-1); 
 	}
 
 	if (embd == nullptr) {
@@ -305,7 +302,7 @@ bool RAG_Memory::areChunksCorrelated(RAG_Memory *rag, string chunk1, string chun
 	hnswlib::DISTFUNC<float> func = rag->space->get_dist_func();
 	void* params = rag->space->get_dist_func_param();
 	float distance = func(embed1.data(), embed2.data(), params);
-	return distance <= 0.5;
+	return distance <= 0.7;
 }
 
 int RAG_Memory::freeMemory() {
