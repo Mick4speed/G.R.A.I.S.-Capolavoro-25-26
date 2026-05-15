@@ -71,7 +71,7 @@ string Brain::cleanResponse(string response) {
 			result += response[i + 1];
 			++i;
 			continue;
-}
+		}
 		if (current == '"') {
 			inString = !inString;
 			result += i;
@@ -118,7 +118,7 @@ string Brain::generateResponse(vector<llama_token> prompt_tokens, llama_context*
 		int len = llama_token_to_piece(vocabulary, token, buf, sizeof(buf), 0, true);
 		if (len > 0) response.append(buf, len);
 		batch = llama_batch_get_one(&token, 1);
-		}
+	}
 	return response;
 }
 
@@ -147,7 +147,7 @@ string Brain::execPrompt(string prompt) {
 	//Add prompt instruction and format
 	string initial_prompt = "[INST] This is the user prompt: " + prompt + ". You are a friendly and empathic AI, which purpose is to help your master. You can do the sequent action: "+Interface::getActionSummary() +
 		"Communicate ONLY in JSON format with an 'action' field, which is the number of the action you want to perform based on the previous action list. And you need to add one or more additional field with name and type equal to the input of the chosen action"
-		", if you want to reply be aware that you may have to search on the internet to have the right information before givin an answer"
+		", if you want to reply be aware that you may have to search on the RAG to have the right information before givin an answer, if the RAG doesn't have enough info then search on the internet"
 		"The JSON MUST start with '{' and finish with '}'[/ INST]";
 	
 
@@ -173,15 +173,13 @@ string Brain::execPrompt(string prompt) {
 		do {
 			response = generateResponse(prompt_tokens, context, sampler, vocabulary);
 		} while (cleanResponse(response) == "");
-		cout << response << endl; //TODO remove this after testing
-
 		json jsonResponse = json::parse(response);
 		current_action = jsonResponse["action"];
 		string result = execAction(current_action, response);
 		
 		if (current_action == 0) response = result; //If the action is 0, we want to return the response to the user
 		
-		actual_prompt = "[RESULT]" + result + "[/RESULT]\n[INST]Continue based on the result above. [/INST]\n";
+		actual_prompt = "[INST] Result: " + result + ", Continue based on the result above. [/INST]\n";
 		if (countTokens(context) > llama_n_ctx(context) - 500) {
 			shiftContext(context, size_initial_prompt);
 		}
