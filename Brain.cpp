@@ -59,7 +59,31 @@ string Brain::cleanResponse(string response) {
     if (l == string::npos || r == string::npos || r < l) {
 		return "";
     }
-    return response.substr(l, r - l + 1);
+	cout << response << endl;
+	response= response.substr(l, r - l + 1);
+	string result = "";
+	bool inString = false;
+	bool isSpecial = false;
+	for (int i = 0; i < response.size(); i++) {
+		char current = response.at(i);
+		if (current == '\\' && inString && (i + 1 < response.length())) {
+			result += current;        
+			result += response[i + 1];
+			++i;
+			continue;
+}
+		if (current == '"') {
+			inString = !inString;
+			result += i;
+		}else if (current == '\n'&&inString) {
+			result += "\\n";
+		}
+		else {
+			result += i;
+		}
+
+	}
+	return result;
 }
 
 int Brain::getMaxContextSize(int size_prompt) {
