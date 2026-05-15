@@ -128,9 +128,16 @@ string Brain::execAction(int action, string JSON) {
 		case 0: {	//Return Text
 			return jsonResponse.value("response", "");
 		} case 1: { //Return data from RAG
+			cout << "[Action] Retrieving Data from the RAG" << endl;
 			vector<string> results = Interface::retrieveDataFromRAG(&rag, jsonResponse.value("query", ""));
+			cout.flush();
 			return boost::algorithm::join(results, ",");
-		} default:
+		} case 2: {
+			cout << "[Action] Retrieving Data from the internet" << endl;
+			vector<string> results = Interface::retrieveDataFromInternet(&rag, jsonResponse.value("url", ""), jsonResponse.value("query", ""));
+			cout.flush();
+			return boost::algorithm::join(results, ",");
+		}default:
 				return "Unknown Action";
 	}
 }
