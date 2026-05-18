@@ -5,7 +5,6 @@
 #include <string>
 #include <locale>
 #include <vector>
-#include <iostream> //TODO remove this after testing
 #include <boost/algorithm/string/join.hpp>
 #include "Brain.h"
 #include "interface.h"
@@ -74,8 +73,7 @@ string Brain::cleanResponse(string response) {
     if (l == string::npos || r == string::npos || r < l) {
 		return "";
     }
-	cout << response << endl;
-	response= response.substr(l, r - l + 1);
+	response = response.substr(l, (r - l) + 1);
 	string result = "";
 	bool inString = false;
 	bool isSpecial = false;
@@ -157,47 +155,39 @@ string Brain::execAction(int action, string JSON) {
 	}
 }
 
-//TODO keep the same context but summarize it when it is full
+vector<llama_token> Brain::tokenizeString(std::string STRING, bool is_first_turn) {
+	const int size_prompt = -llama_tokenize(llama_model_get_vocab(model), STRING.c_str(), STRING.size(), NULL, 0, is_first_turn, true); //Calculate the number of tokens in the prompt
+
+	vector<llama_token> prompt_tokens(size_prompt); // Create a vector to hold the tokenized prompt
+	if (llama_tokenize(llama_model_get_vocab(model), STRING.c_str(), STRING.size(), prompt_tokens.data(), prompt_tokens.size(), is_first_turn, true) < 0) {
+		throw runtime_error("Failed to tokenize the prompt: " + STRING);
+	}
+	return prompt_tokens;
+}
+
 string Brain::execPrompt(string prompt) {
 	//Add prompt instruction and format
-	string initial_prompt = "[INST] This is the user prompt: " + prompt + ". You are a friendly and empathic AI, which purpose is to help your master. You can do the sequent action: "+Interface::getActionSummary() +
-		"Communicate ONLY in JSON format with an 'action' field, which is the number of the action you want to perform based on the previous action list. And you need to add one or more additional field with name and type equal to the input of the chosen action"
-		", if you want to reply be aware that you may have to search on the RAG to have the right information before givin an answer, if the RAG doesn't have enough info then search on the internet"
-		"The JSON MUST start with '{' and finish with '}'[/ INST]";
-	
 
 	const llama_vocab* vocabulary = llama_model_get_vocab(model); // Get the model's vocabulary
 	llama_sampler* sampler = getSampler(); // Initialize the sampler with default parameters
 
-	const int size_initial_prompt = -llama_tokenize(vocabulary, prompt.c_str(), prompt.size(), NULL, 0, true, true); //Calculate the number of tokens in the prompt
-	string actual_prompt = initial_prompt;
+	string system_prompt = "<|im_start|>system\n" + SYSTEM_PROMPT + "\n<|im_end|>";
+	vector<llama_token> system_token = tokenizeString(system_prompt, true);
 	int current_action = -1;
-	llama_context* context = nullptr;
+	llama_context* context = createContext();
 	string response = "";
-
+	generateResponse(system_token, context, sampler, vocabulary);
+	string actual_prompt = "<|im_start|>user\n"+prompt+"<|im_end|>\n<|im_start|>assistant\n";
 	do {
-		bool isFirst = context == nullptr;
-		const int size_prompt = -llama_tokenize(vocabulary, actual_prompt.c_str(), actual_prompt.size(), NULL, 0, isFirst, isFirst); //Calculate the number of tokens in the prompt
-	
-		vector<llama_token> prompt_tokens(size_prompt); // Create a vector to hold the tokenized prompt
-		if (llama_tokenize(vocabulary, actual_prompt.c_str(), actual_prompt.size(), prompt_tokens.data(), prompt_tokens.size(), isFirst, isFirst) < 0) {
-			throw runtime_error("Failed to tokenize the prompt: " + actual_prompt);
-		}
-		if (context==nullptr) context = createContext();
-
-		do {
+		vector<llama_token> prompt_tokens = tokenizeString(actual_prompt, false);
+		do{
 			response = generateResponse(prompt_tokens, context, sampler, vocabulary);
 		} while (cleanResponse(response) == "");
 		json jsonResponse = json::parse(response);
 		current_action = jsonResponse["action"];
 		string result = execAction(current_action, response);
-		
 		if (current_action == 0) response = result; //If the action is 0, we want to return the response to the user
-		
-		actual_prompt = "[INST] Result: " + result + ", Continue based on the result above. [/INST]\n";
-		if (countTokens(context) > llama_n_ctx(context) - 500) {
-			shiftContext(context, size_initial_prompt);
-		}
+		actual_prompt = "<|im_end|>\n<|im_start|>tool\n" + result + "\n<|im_end|>\n<|im_start|>assistant\n";
 	} while (current_action > 0);
 
 	
