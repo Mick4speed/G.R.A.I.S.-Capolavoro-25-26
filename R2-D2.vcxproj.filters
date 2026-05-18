@@ -54,4 +54,7 @@
   <ItemGroup>
     <CudaCompile Include="CUDA_Math.cu" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="grammar.gbnf" />
+  </ItemGroup>
 </Project>

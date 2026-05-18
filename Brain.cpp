@@ -1,4 +1,7 @@
 #include "llama.h"
+#include <iostream> 
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <locale>
 #include <vector>
@@ -10,7 +13,17 @@
 using namespace std;
 using json = nlohmann::json;
 
-//TODO add RAG support
+string loadFile(string path) {
+	ifstream file(path);
+	if (!file.is_open()) {
+		cerr << "Error: Grammar file wasn't found" << endl;
+		return "";
+	}
+	stringstream ss;
+	ss << file.rdbuf();
+	file.close();
+	return ss.str();
+}
 
 Brain::Brain()
 	:rag()
@@ -47,6 +60,8 @@ void Brain::shiftContext(llama_context* context, int size_prompt) {
 
 llama_sampler* Brain::getSampler() {
 	llama_sampler* sampler = llama_sampler_chain_init(llama_sampler_chain_default_params()); // Initialize the sampler with default parameters
+	/*string grammar = loadFile("grammar.gbnf"); //GRAMMAR DO NOT USE NOT STABLE
+	if(!grammar.empty()) llama_sampler_chain_add(sampler, llama_sampler_init_grammar(llama_model_get_vocab(model), grammar.c_str(), "root"));*/
 	llama_sampler_chain_add(sampler, llama_sampler_init_penalties(64, 1.1f, 0.0f, 0.0f));	
 	llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.7f)); 
 	llama_sampler_chain_add(sampler, llama_sampler_init_dist(time(NULL)));
