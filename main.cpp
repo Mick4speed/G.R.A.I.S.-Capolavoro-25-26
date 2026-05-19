@@ -28,7 +28,7 @@ int main() {
             string user_input;
             getline(cin, user_input);
             if (user_input == "exit") {
-                cout << "R2-D2: Arrivederci!" << endl;
+                cout << "R2-D2> Bye!" << endl;
                 break;
             }
             string response = r2d2.execPrompt(user_input);
@@ -38,6 +38,5 @@ int main() {
 	catch (exception& e) {
         cerr << "Error: " << e.what() << endl;
     }
-    //exit
     return 0;
 }
