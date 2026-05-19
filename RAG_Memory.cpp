@@ -259,10 +259,10 @@ vector<float> RAG_Memory::embedString(string chunk) {
 bool RAG_Memory::saveChunk(std::string chunk, std::string source, int importance) {
 	vector<float> embed = embedString(chunk);
 	if (existsIndex(&embed)) {
-		cout << "ERROR EMBED ALREADY EXISTS" << endl;
+		cout << "[RAG System] ERROR EMBED ALREADY EXISTS" << endl;
 		return true;
 	}
-	cout << "EMBED DOESN'T EXIST" << endl;
+	cout << "[RAG System] EMBED DOESN'T EXIST" << endl;
 	int id = getNextID();
 	if (!(insertToIndex(id, &embed) && insertToSQLite(id, chunk, source, importance))) {
 		cerr << "Error while inserting data chunk: "<<chunk<<endl;
