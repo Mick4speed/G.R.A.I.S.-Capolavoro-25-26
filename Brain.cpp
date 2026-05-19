@@ -44,20 +44,27 @@ Brain::Brain()
 	if (model==NULL) {
 		throw runtime_error("Failed to load the model from file: "+modelPath);
 	}
+	context = createContext();
+	sampler = createSampler();
+	string system_prompt = "<|im_start|>system\n" + SYSTEM_PROMPT + "\n<|im_end|>";
+	vector<llama_token> system_token = tokenizeString(system_prompt, true);
+	generateResponse(system_token, sampler, llama_model_get_vocab(model));
+	PROMPT_CONTEXT_SIZE = countTokens();
 }
 
-int Brain::countTokens(llama_context* context) {
+int Brain::countTokens() {
 	llama_memory_t memory = llama_get_memory(context);
 	return llama_memory_seq_pos_max(memory, 0) + 1;
 }
 
-void Brain::shiftContext(llama_context* context, int size_prompt) {
+void Brain::shiftContext(int pointToShift) {
+	int lastToken = countTokens();
 	llama_memory_t memory = llama_get_memory(context);
-	llama_memory_seq_rm(memory, 0, size_prompt + 1, size_prompt + delete_token);
-	llama_memory_seq_add(memory, 0, size_prompt, -1, -delete_token);
+	llama_memory_seq_rm(memory, 0, PROMPT_CONTEXT_SIZE+1, pointToShift);
+	llama_memory_seq_add(memory, 0, pointToShift, lastToken, -(pointToShift - PROMPT_CONTEXT_SIZE)+1);
 }
 
-llama_sampler* Brain::getSampler() {
+llama_sampler* Brain::createSampler() {
 	llama_sampler* sampler = llama_sampler_chain_init(llama_sampler_chain_default_params()); // Initialize the sampler with default parameters
 	/*string grammar = loadFile("grammar.gbnf"); //GRAMMAR DO NOT USE NOT STABLE
 	if(!grammar.empty()) llama_sampler_chain_add(sampler, llama_sampler_init_grammar(llama_model_get_vocab(model), grammar.c_str(), "root"));*/
@@ -105,7 +112,7 @@ int Brain::getMaxContextSize(int size_prompt) {
 
 llama_context* Brain::createContext() {
 	llama_context_params context_params = llama_context_default_params();;
-	context_params.n_ctx = 4096; // Set the context size to accommodate the prompt and the output tokens
+	context_params.n_ctx = 10420; // Set the max context size,the max context size is high but in reality it will be summarized when it goes over 7000 token
 	context_params.n_batch = 4096; // n_batch is the maximum number of tokens that can be processed in a single call to llama_decode
 	llama_context* context = llama_init_from_model(model, context_params); // Create a new context with the model and parameters
 	if (context == NULL) {
@@ -114,7 +121,7 @@ llama_context* Brain::createContext() {
 	return context;
 }
 
-string Brain::generateResponse(vector<llama_token> prompt_tokens, llama_context* context, llama_sampler* sampler, const llama_vocab* vocabulary) {
+string Brain::generateResponse(vector<llama_token> prompt_tokens, llama_sampler* sampler, const llama_vocab* vocabulary) {
 	string response = "";
 	llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
 	char buf[256];
@@ -166,33 +173,37 @@ vector<llama_token> Brain::tokenizeString(std::string STRING, bool is_first_turn
 }
 
 string Brain::execPrompt(string prompt) {
-	//Add prompt instruction and format
+	// Get the model's vocabulary
+	const llama_vocab* vocabulary = llama_model_get_vocab(model); 
 
-	const llama_vocab* vocabulary = llama_model_get_vocab(model); // Get the model's vocabulary
-	llama_sampler* sampler = getSampler(); // Initialize the sampler with default parameters
-
-	string system_prompt = "<|im_start|>system\n" + SYSTEM_PROMPT + "\n<|im_end|>";
-	vector<llama_token> system_token = tokenizeString(system_prompt, true);
 	int current_action = -1;
-	llama_context* context = createContext();
 	string response = "";
-	generateResponse(system_token, context, sampler, vocabulary);
 	string actual_prompt = "<|im_start|>user\n"+prompt+"<|im_end|>\n<|im_start|>assistant\n";
+	int count = 0;
 	do {
-		vector<llama_token> prompt_tokens = tokenizeString(actual_prompt, false);
-		do{
-			response = generateResponse(prompt_tokens, context, sampler, vocabulary);
-		} while (cleanResponse(response) == "");
-		json jsonResponse = json::parse(response);
-		current_action = jsonResponse["action"];
-		string result = execAction(current_action, response);
-		if (current_action == 0) response = result; //If the action is 0, we want to return the response to the user
-		actual_prompt = "<|im_end|>\n<|im_start|>tool\n" + result + "\n<|im_end|>\n<|im_start|>assistant\n";
+		count++;
+		if (count == 5) return "Sorry I had an internal error";
+		if (countTokens() >= 7000) {
+			int shiftPoint = countTokens();
+			vector<llama_token> prompt_tokens = tokenizeString("<|im_start|>system\nResume the entire chat, mentioning every argument that we touched\n<|im_end|>\n<|im_start|>assistant\n", false);
+			cout << "[Action] Freeing AI memory"<<endl;
+			generateResponse(prompt_tokens, sampler, vocabulary);
+			shiftContext(shiftPoint);
+		}
+		try{
+			vector<llama_token> prompt_tokens = tokenizeString(actual_prompt, false);
+			response = generateResponse(prompt_tokens, sampler, vocabulary);
+			json jsonResponse = json::parse(response);
+			current_action = jsonResponse["action"];
+			string result = execAction(current_action, response);
+			if (current_action == 0) response = result; //If the action is 0, we want to return the response to the user
+			actual_prompt = "<|im_end|>\n<|im_start|>tool\n" + result + "\n<|im_end|>\n<|im_start|>assistant\n";
+		}
+		catch (exception e) {
+			continue;
+		}
 	} while (current_action > 0);
 
-	
-	llama_free(context);
-	llama_sampler_free(sampler);
 	return response;
 }
 
@@ -200,6 +211,8 @@ Brain::~Brain() {
 	if (model != nullptr) {
 		llama_model_free(model);
 	}
+	if (context) llama_free(context);
+	if(sampler) llama_sampler_free(sampler);
 	rag.saveMemory();
 	llama_backend_free();
 }
