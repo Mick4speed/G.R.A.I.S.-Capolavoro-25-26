@@ -282,6 +282,10 @@ vector<string> RAG_Memory::search(string query) {
 	return result;
 }
 
+bool RAG_Memory::removeChunk(int ID) {
+	return this->removeFromSQLite(ID) && this->removeFromIndex(ID);
+}
+
 bool RAG_Memory::saveMemory() {
 	return saveIndex();
 }

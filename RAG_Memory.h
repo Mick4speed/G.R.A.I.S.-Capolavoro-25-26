@@ -45,12 +45,12 @@ public:
 	//Embed the chunk and save it to the database with the source information, and importance score from 0 to 100
 	bool saveChunk(std::string chunk, std::string source, int importance);
 	std::vector<std::string> search(std::string query);
+	bool removeChunk(int ID);
 	//Free memory by removing the least important chunks until the target size is reached, and return the number of chunks removed
 	int freeMemory(); 
 	//Save the HNSW index to disk and commit any changes to the SQLite database
 	bool saveMemory();
 	//Check if two chunk are correlated (cosine distance < 4.5)
-	//TODO: IMPLEMENT THIS FEATURE
 	static bool areChunksCorrelated(RAG_Memory *rag, std::string chunk1, std::string chunk2);
 	RAG_Memory();
 	~RAG_Memory();
