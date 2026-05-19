@@ -58,11 +58,12 @@ vector<string> extractHTML(string pageContent, string parseRegex) {
 	return urls;
 }
 
-void insertChunks(RAG_Memory *rag, vector<string> individualPhrases, string link) {
+void insertChunks(RAG_Memory *rag, vector<string> individualPhrases, string link, string query) {
 	if (individualPhrases.empty()) return;
 	string chunk = individualPhrases.front();
 	for (int i = 1; i < individualPhrases.size(); i++) {
-		if (chunk.size() >= 350) {
+		if (!RAG_Memory::areChunksCorrelated(rag, individualPhrases.at(i), query)) continue;
+		if (chunk.size() >= 200) {
 			rag->saveChunk(chunk, link, 60);
 			chunk = individualPhrases.at(i);
 			continue;
@@ -280,7 +281,7 @@ namespace Interface {
 			data = data.substr(data.find_first_of('.') + 1);
 			individualPhrases.push_back(sub);
 			if (individualPhrases.size() > 500) {
-				insertChunks(rag, individualPhrases, link);
+				insertChunks(rag, individualPhrases, link, query);
 				individualPhrases.clear();
 				batchProcessed++;
 			}
