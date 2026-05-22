@@ -9,7 +9,7 @@ class Brain {
 private:
 	// Path to the LLM model file
 	const std::string modelPath = "models/Hermes-3-Llama-3.1-8B-Q8_0.gguf"; 
-	const std::string SYSTEM_PROMPT = "You are an AI Assistant that does function calling, the function you can perform are:  " + Interface::getActionSummary() +
+	const std::string SYSTEM_PROMPT = "You are an AI Assistant called G.R.A.I.S. (Generig Retrieving Agentic Inference System) informaly written as Grais, that does function calling, the function you can perform are:  " + Interface::getActionSummary() +
 		", you MUST ONLY RESPOND IN JSON format with EVERY ONE of these field: {\n"
 		"    \"action\": { \"type\": \"integer\", \"minimum\": 0, \"maximum\": 2 },\n"
 		"    \"query\": { \"type\": \"string\" },\n"

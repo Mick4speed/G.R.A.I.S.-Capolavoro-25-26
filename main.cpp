@@ -18,23 +18,23 @@ int main() {
     SetConsoleCP(CP_UTF8);
     #endif
     try {
-        cout << "Caricamento R2-D2 in corso..." << endl;
-        Brain r2d2;
+        cout << "Loading G.R.A.I.S." << endl;
+        Brain grais;
 
         system("cls");
-        cout << "--- R2-D2 ONLINE ---" << endl;
-        while (true) {
-            cout << "You>";
-            string user_input;
-            getline(cin, user_input);
-            if (user_input == "exit") {
-                cout << "R2-D2> Bye!" << endl;
-                break;
+        cout << "--- G.R.A.I.S. ONLINE ---" << endl;
+        string user_input="";
+        do{
+            string response;
+            if (!user_input.empty()) {
+                response = grais.execPrompt(user_input);
+                cout << "G.R.A.I.S.> " << response << endl;
             }
-            string response = r2d2.execPrompt(user_input);
-            cout << "R2-D2> " << response << endl;
-		}
-	}
+            cout << "You>";
+            getline(cin, user_input);
+        } while (user_input != "exit");
+        cout << "G.R.A.I.S.> Bye!" << endl;
+    }
 	catch (exception& e) {
         cerr << "Error: " << e.what() << endl;
     }
