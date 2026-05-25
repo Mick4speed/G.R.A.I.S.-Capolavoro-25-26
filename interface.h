@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "RAG_Memory.h"
+#include "PythonRuntime.h"
 
 //What we want the bot to be able to do, and how we want it to interact with the user.
 //Run generated code -- NOT IMPLEMENTED YET
@@ -25,5 +26,5 @@ namespace Interface {
 	std::vector<std::string> retrieveDataFromRAG(RAG_Memory* rag, std::string query);
 	std::vector<std::string> searchOnline(std::string query);
 	std::vector<std::string> retrieveDataFromInternet(RAG_Memory* rag, std::string link, std::string query);
-	std::string getActionSummary();
+	std::string getActionSummary(PythonRuntime* python);
 };

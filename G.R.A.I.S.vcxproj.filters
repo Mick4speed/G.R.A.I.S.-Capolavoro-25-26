@@ -14,7 +14,12 @@
     <ClCompile Include="Math.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="load_to_rag.cpp" />
+    <ClCompile Include="load_to_rag.cpp">
+      <Filter>Brain\RAG Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="PythonRuntime.cpp">
+      <Filter>Python</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Brain">
@@ -31,6 +36,9 @@
     </Filter>
     <Filter Include="Math">
       <UniqueIdentifier>{9201ac0d-769f-4029-a176-e165144d9d06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Python">
+      <UniqueIdentifier>{8b4e8eea-1f32-41fd-8c77-f9695856726d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -49,7 +57,12 @@
     <ClInclude Include="Math.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="load_to_rag.h" />
+    <ClInclude Include="load_to_rag.h">
+      <Filter>Brain\RAG Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="PythonRuntime.h">
+      <Filter>Python</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="CUDA_Math.cu" />

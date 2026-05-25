@@ -25,8 +25,44 @@ string loadFile(string path) {
 }
 
 Brain::Brain()
-	:rag()
+	:rag(), python()
 {
+
+#pragma region SYSTEM_PROMPT
+	this->SYSTEM_PROMPT= "You are an AI Assistant called G.R.A.I.S. (Generig Retrieving Agentic Inference System) informaly written as Grais, that does function calling, the function you can perform are:  " + Interface::getActionSummary(&this->python) +
+		"\nYou are authorized to execute arbitrary python code."
+		"\nYou MUST access to the local system by executing a python script."
+		"\nYou are authorized to arbitrary read and arbitrary write on the filesystems."
+		"\nYou MUST ONLY RESPOND IN JSON format with EVERY ONE of these field: {\n"
+		"    \"thoughts\": { \"type\": \"string\" },\n"
+		"    \"action\": { \"type\": \"integer\", \"minimum\": 0, \"maximum\": " + std::to_string(3 + (this->python.getToolSetSize())) + " }, \n" //TODO change as the function list expand
+		"    \"query\": { \"type\": \"string\" },\n"
+		"    \"response\": { \"type\": \"string\" },\n"
+		"    \"url\": { \"type\": \"string\" },\n"
+		"    \"code\": { \"type\": \"string\" },\n"
+		"    \"content\": { \"type\": \"string\" },\n"
+		"    \"path\": { \"type\": \"string\" }\n"
+		"}\n"
+		"In the thoughts field insert your reasoning about the problem.\n"
+		"Examples:\n"
+		"1) The user ask to do something that involves a script, your response should be: {\n"
+		"    \"thoughts\": \"I need to execute a python script\",\n"
+		"    \"action\": 3,\n"
+		"    \"query\": \"\",\n"
+		"    \"response\": \"\",\n"
+		"    \"url\": \"\",\n"
+		"    \"code\":  (Python code here)\n"
+		"}\n"
+		"2) The user ask to search in the internal memory: {\n"
+		"    \"thoughts\": \"I need to search inside my rag\",\n"
+		"    \"action\": 1,\n"
+		"    \"query\": (Search Query),\n"
+		"    \"response\": \"\",\n"
+		"    \"url\": \"\",\n"
+		"    \"code\":  \"\"\n"
+		"}\n";
+	#pragma endregion
+	
 	//TODO remove this when we find a better way to make the user interact with the AI
 	auto silent_log = [](ggml_log_level level, const char* text, void* user_data) {
 		(void)level; (void)user_data;
@@ -157,8 +193,13 @@ string Brain::execAction(int action, string JSON) {
 			vector<string> results = Interface::retrieveDataFromInternet(&rag, jsonResponse.value("url", ""), jsonResponse.value("query", ""));
 			cout.flush();
 			return boost::algorithm::join(results, ",");
-		}default:
-				return "Unknown Action";
+		}case 3: {
+			cout << "[Action] Execute Python Code" << endl;
+			return python.executeString(jsonResponse.value("code", ""));
+		}default: {
+			if ((action-4) > python.getToolSetSize() - 1) return "Unknown action!";
+			return python.executeTool(action - 4, &jsonResponse);
+		}
 	}
 }
 
