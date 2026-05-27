@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "llama.h"
+#include "PythonRuntime.h"
 #include "RAG_Memory.h"
 #include "interface.h"
 
@@ -9,17 +10,13 @@ class Brain {
 private:
 	// Path to the LLM model file
 	const std::string modelPath = "models/Hermes-3-Llama-3.1-8B-Q8_0.gguf"; 
-	const std::string SYSTEM_PROMPT = "You are an AI Assistant called G.R.A.I.S. (Generig Retrieving Agentic Inference System) informaly written as Grais, that does function calling, the function you can perform are:  " + Interface::getActionSummary() +
-		", you MUST ONLY RESPOND IN JSON format with EVERY ONE of these field: {\n"
-		"    \"action\": { \"type\": \"integer\", \"minimum\": 0, \"maximum\": 2 },\n"
-		"    \"query\": { \"type\": \"string\" },\n"
-		"    \"response\": { \"type\": \"string\" },\n"
-		"    \"url\": { \"type\": \"string\" }\n"
-		"}";
+	//Model System prompt //TODO add OS name and user folder path
+	std::string SYSTEM_PROMPT;
 	// GPU layers used 
 	const int gpu_layer = -1; 
 	// Number of tokens to generate
 	const int output_token = 1024; 
+	PythonRuntime python;
 	// Inizializzata nel costruttore e immutabile dopo
 	int PROMPT_CONTEXT_SIZE; 
 	// Pointer to the LLaMA model
