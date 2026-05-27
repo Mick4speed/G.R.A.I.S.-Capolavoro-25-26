@@ -3,9 +3,8 @@
 #include "RAG_Memory.h"
 
 //What we want the bot to be able to do, and how we want it to interact with the user.
-//Run generated code -- NOT IMPLEMENTED YET
+//Run generated code -- IMPLEMENTED
 //Search online -- IMPLEMENTED
-//Connect to Wi-Fi network -- NOT IMPLEMENTED YET, P.I.T.A.
 
 namespace Interface {
 	//CONSTANTS
