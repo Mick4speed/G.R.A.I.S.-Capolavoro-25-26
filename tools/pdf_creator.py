@@ -1,5 +1,6 @@
 #create a simple text-only PDF file with the specified content, input path(string) content (string), output state message (string)
 #path content
+#REQUIREMENTS: reportlab
 import reportlab
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
