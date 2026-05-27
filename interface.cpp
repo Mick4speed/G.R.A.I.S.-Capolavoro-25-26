@@ -13,6 +13,7 @@
 #include <boost/asio/ssl/error.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include "json.hpp"
+#include "PythonRuntime.h"
 
 #include <lexbor/html/html.h>
 #include <lexbor/dom/interfaces/element.h>
@@ -289,10 +290,16 @@ namespace Interface {
 		return retrieveDataFromRAG(rag, query);
 	}
 
-	string getActionSummary() {
-		return
+	string getActionSummary(PythonRuntime* python) {
+		string staticAction = 
 			" 0 - Response: Return a response to the user and end the task, input:response (string), return none (void)\n"
 			" 1 - Retrieve data from RAG memory, input: query(string), return list of result (vector<string>)\n"
-			" 2 - Retrieve data from the internet page specified with the given query, input: url(string), query(string), return list of result(vector<string>)";
+			" 2 - Retrieve data from the internet page specified with the given query, input: url(string), query(string), return list of result(vector<string>)\n"
+			" 3 - Execute Python Code, input: code(string), return stdout of the python code (string)";
+		vector<string> pythonDescriptions = python->getDescriptionList();
+		for (int i = 0; i < python->getToolSetSize(); i++) {
+			staticAction += "\n " + to_string(4 + i) + " - " + pythonDescriptions[i];
+		}
+		return staticAction;
 	}
 }
