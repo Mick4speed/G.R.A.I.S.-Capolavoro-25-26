@@ -102,8 +102,6 @@ void Brain::shiftContext(int pointToShift) {
 
 llama_sampler* Brain::createSampler() {
 	llama_sampler* sampler = llama_sampler_chain_init(llama_sampler_chain_default_params()); // Initialize the sampler with default parameters
-	/*string grammar = loadFile("grammar.gbnf"); //GRAMMAR DO NOT USE NOT STABLE
-	if(!grammar.empty()) llama_sampler_chain_add(sampler, llama_sampler_init_grammar(llama_model_get_vocab(model), grammar.c_str(), "root"));*/
 	llama_sampler_chain_add(sampler, llama_sampler_init_penalties(64, 1.1f, 0.0f, 0.0f));	
 	llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.7f)); 
 	llama_sampler_chain_add(sampler, llama_sampler_init_dist(time(NULL)));

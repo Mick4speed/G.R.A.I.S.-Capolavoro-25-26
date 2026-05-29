@@ -28,12 +28,6 @@
     <ClInclude Include="PythonRuntime.h" />
     <ClInclude Include="RAG_Memory.h" />
   </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="CUDA_Math.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="grammar.gbnf" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{86EEC886-02C9-D55C-7B80-4F17F9EE6490}</ProjectGuid>
     <RootNamespace>R2_D2</RootNamespace>
