@@ -14,7 +14,7 @@ private:
 	const int EF_CONSTRUCTION = 200; //EF construction parameter for HNSW
 	const int MAX_ELEMENT_RETURN = 7; //Max element to return from the index
 	const int GPU_LAYER = 0;
-	const std::string modelPath = "models/bge-m3-Q8_0.gguf"; // Path to the LLM model file
+	const std::string modelPath = "models/Embedder.gguf"; // Path to the LLM model file
 	
 	llama_model* model; // Pointer to the LLaMA model
 	llama_context* ctx;

@@ -9,7 +9,7 @@
 class Brain {
 private:
 	// Path to the LLM model file
-	const std::string modelPath = "models/Hermes-3-Llama-3.1-8B-Q8_0.gguf"; 
+	const std::string modelPath = "models/LLM.gguf"; 
 	//Model System prompt //TODO add OS name and user folder path
 	std::string SYSTEM_PROMPT;
 	// GPU layers used 
