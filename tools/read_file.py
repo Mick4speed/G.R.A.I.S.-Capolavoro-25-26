@@ -28,7 +28,7 @@ file_types = {
 def execute(path):
     if not os.path.isfile(path):
         print("Error: File does not exist.")
-        return "Error: File does not exist."
+        return "Error: File does not exist: " + path + "."
     try:
         extension = os.path.splitext(path)[1][1:].lower()
         if extension in file_types:
