@@ -19,11 +19,10 @@ namespace Interface {
 	std::vector<std::string> getUrlFromString(std::string string_url, std::vector<std::string> curUrl);
 
 	//PUBLIC
-	std::vector<std::string> getUrlFromQuery(std::string query); //BETA
+	void saveDataToRag(RAG_Memory* rag, std::string data, std::string source, int importance);
 	std::string sanitizePage(std::string pageContent);
 	std::string getWebPage(std::vector<std::string> url);
 	std::vector<std::string> retrieveDataFromRAG(RAG_Memory* rag, std::string query);
-	std::vector<std::string> searchOnline(std::string query);
 	std::vector<std::string> retrieveDataFromInternet(RAG_Memory* rag, std::string link, std::string query);
 	std::string getActionSummary(PythonRuntime* python);
 };
