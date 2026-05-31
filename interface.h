@@ -3,7 +3,7 @@
 #include "RAG_Memory.h"
 #include "PythonRuntime.h"
 
-//What we want the bot to be able to do, and how we want it to interact with the user.
+//Interface to beetwen Brain and Memory
 //Run generated code -- IMPLEMENTED
 //Search online -- IMPLEMENTED
 
