@@ -2,16 +2,17 @@
 
 ## Sommario 
 
-G.R.A.I.S. 
-	Sommario
-	Introduzione
-	Struttura
-		Brain
-		Rag Memory
-		Python Runtime
-		Interface
-	Scaricare e Compilare G.R.A.I.S.
-	Riferimenti
+# G.R.A.I.S.
+
+## Sommario
+- [Introduzione](#introduzione)
+- [Struttura](#struttura)
+  - [Brain](#brain)
+  - [Rag Memory](#rag-memory)
+  - [Python Runtime](#python-runtime)
+  - [Interface](#interface)
+- [Scaricare e Compilare G.R.A.I.S.](#scaricare-e-compilare-grais)
+- [Riferimenti](#riferimenti)
 
 ## Introduzione 
 
