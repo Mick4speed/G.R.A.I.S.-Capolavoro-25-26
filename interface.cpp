@@ -247,7 +247,7 @@ namespace Interface {
 				//creating the http request
 				http::request<http::string_body> request{ http::verb::get, currentURL[1], 11}; // forzato HTTP/1.1 (11)
 				request.set(http::field::host, currentURL[0]);
-				request.set(http::field::user_agent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+				request.set(http::field::user_agent, "G.R.A.I.S.");
 				request.set(http::field::accept_language, "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7");
 				request.set(http::field::connection, "keep-alive");
 
