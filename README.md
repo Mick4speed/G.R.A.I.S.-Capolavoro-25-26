@@ -2,9 +2,8 @@
 
 ## Sommario 
 
-# G.R.A.I.S.
-
-## Sommario
+[G.R.A.I.S.](#G.R.A.I.S.)
+- [Sommario](#sommario)
 - [Introduzione](#introduzione)
 - [Struttura](#struttura)
   - [Brain](#brain)
