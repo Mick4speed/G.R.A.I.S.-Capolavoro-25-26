@@ -41,9 +41,7 @@ Ci sono anche degli svantaggi riguardanti questa architettura:
 
 ## Struttura 
 
-_Figura 1: Schema a blocchi del sistema GRAIS_ 
-
-## Brain 
+### Brain 
 
 Brain è il cervello di GRAIS, qui viene gestito la LLM[1] e le chiamate ai tool. 
 
@@ -53,7 +51,7 @@ Per l’inferenza della LLM usiamo llama.cpp[3] , perché supporta i modelli ggu
 
 Per analizzare i JSON usiamo  json.hpp[6] una libreria open-source, e facile da usare, e molto portabile tra i vari sistemi operativi perché composta da un solo file, chiamato appunto _“json.hpp”_ . 
 
-## Rag Memory 
+### Rag Memory 
 
 La memoria semantica di cui GRAIS è dotata, permette le 3 operazioni fondamentali: lettura, scrittura e rimozione. 
 
@@ -65,7 +63,7 @@ Il vettore insieme ad un ID viene salvato nel database vettoriale, mentre lo ste
 
 Come Database Vettoriale ho usato hnwslib[8] , che sfrutta l’algoritmo _“Approximate Nearest Neighbor”_ , invece come database relazionale ho usato sqlite[9] , mentre come modello di embedding ho usato bgem3[10] , per la sua leggerezza ed il suo supporto ad oltre 100 lingue. 
 
-## Python Runtime 
+### Python Runtime 
 
 Per eseguire codice python[11] all’interno di un’applicazione scritta in C++ ho usato le librerie ufficiali Python. 
 
@@ -89,7 +87,7 @@ Esempio prime 2 righe tool python:
 
 _#Read the text content of a file, input path (string), output file content (string) #path_ 
 
-## Interface 
+### Interface 
 
 Interface è un’interfaccia che gestisce la comunicazione tra il Brain e la Memoria RAG, e racchiude in una singola funzione l’operazione di web scraping[12] . 
 
