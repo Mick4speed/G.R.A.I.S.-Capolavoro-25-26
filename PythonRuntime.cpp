@@ -139,6 +139,7 @@ string PythonRuntime::executeString(string script) {
 }
 
 string PythonRuntime::executeTool(int index, json* JSON) {
+    PYTHON_OUTPUT = "";
     if (index < 0 || index >= this->toolset.size()) return this->executeString("print('Error: Tool index out of bound')");
     PyModule toolInfo = this->toolset[index];
     cout << "[Action] Executing tool: " << toolInfo.name << endl;
@@ -158,38 +159,40 @@ string PythonRuntime::executeTool(int index, json* JSON) {
                     PyTuple_SetItem(input, i, arg);
                 }
                 else {
-                    return this->executeString("print('Error while retrieving input arguments from JSON')");
+                    return "Python Output:" + PYTHON_OUTPUT + "\nError while retrieving input arguments from JSON";
                 }
             }
             PyObject* output = PyObject_CallObject(function, input);
             Py_XDECREF(input);
             Py_XDECREF(function);
             Py_DECREF(toolModule);
-            if (output != NULL && PyUnicode_Check(output)) {
-                string result;
-                PyObject* ouputString = PyUnicode_AsUTF8String(output);
+            if (output != NULL) {
+                if (PyUnicode_Check(output)) {
+                    string result;
+                    PyObject* ouputString = PyUnicode_AsUTF8String(output);
 
-                if (ouputString != NULL) {
-                    const char* cString = PyBytes_AsString(ouputString);
-                    result = string(cString);
-                    Py_DECREF(ouputString);
+                    if (ouputString != NULL) {
+                        const char* cString = PyBytes_AsString(ouputString);
+                        result = string(cString);
+                        Py_DECREF(ouputString);
+                    }
+                    return "Python Output:" + PYTHON_OUTPUT + "\nTool: " + result;
+                }else if (output == Py_None) {
+                    return "Python Output:" + PYTHON_OUTPUT;
+                }else {
+                    PyErr_Print();
+                    return "Python Output:" + PYTHON_OUTPUT + "\nError while converting from python string to C++ string";
                 }
-                Py_XDECREF(input);
-                return result;
-            }
-            else {
-                PyErr_Print();
-                return this->executeString("print('Error while converting from python string to C++ string')");
             }
         }
         else {
             PyErr_Print();
-            return this->executeString("print('''Error function 'execute' doesn't exists''')");
+            return "Python Output:" + PYTHON_OUTPUT + "\nError function 'execute' doesn't exists";
         }
     }
     else {
         PyErr_Print();
-        return this->executeString("print('''Error while retrieving module " + toolInfo.name+"''')");
+        return "Python Output:"+ PYTHON_OUTPUT+"\nError while retrieving module " + toolInfo.name;
     }
 }
 

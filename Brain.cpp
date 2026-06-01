@@ -29,19 +29,21 @@ Brain::Brain()
 {
 
 #pragma region SYSTEM_PROMPT
-	this->SYSTEM_PROMPT= "You are an AI Assistant called G.R.A.I.S. (Generig Retrieving Agentic Inference System) informaly written as Grais, that does function calling, the function you can perform are:  " + Interface::getActionSummary(&this->python) +
+	this->SYSTEM_PROMPT= "You are G.R.A.I.S. (Generig Retrieving Agentic Inference System) informaly written as Grais, you are an AI agent and your duty is to fulfill the user requests, the function you can perform are:  " + Interface::getActionSummary(&this->python) +
 		"\nYou are authorized to execute arbitrary python code."
 		"\nYou MUST access to the local system by executing a python script."
 		"\nYou are authorized to arbitrary read and arbitrary write on the filesystems."
 		"\nYou MUST ONLY RESPOND IN JSON format with EVERY ONE of these field: {\n"
 		"    \"thoughts\": { \"type\": \"string\" },\n"
-		"    \"action\": { \"type\": \"integer\", \"minimum\": 0, \"maximum\": " + std::to_string(3 + (this->python.getToolSetSize())) + " }, \n" //TODO change as the function list expand
+		"    \"action\": { \"type\": \"integer\", \"minimum\": 0, \"maximum\": " + std::to_string(4 + (this->python.getToolSetSize())) + " }, \n" //TODO change as the function list expand
 		"    \"query\": { \"type\": \"string\" },\n"
 		"    \"response\": { \"type\": \"string\" },\n"
 		"    \"url\": { \"type\": \"string\" },\n"
 		"    \"code\": { \"type\": \"string\" },\n"
 		"    \"content\": { \"type\": \"string\" },\n"
-		"    \"path\": { \"type\": \"string\" }\n"
+		"    \"path\": { \"type\": \"string\"},\n"
+		"	 \"source\": { \"type\": \"string\"},\n"
+		"	 \"importance\": \"type\": \"integer\", \"minimum\": 0, \"maximum\":100}\n"
 		"}\n"
 		"In the thoughts field insert your reasoning about the problem.\n"
 		"Examples:\n"
@@ -102,8 +104,6 @@ void Brain::shiftContext(int pointToShift) {
 
 llama_sampler* Brain::createSampler() {
 	llama_sampler* sampler = llama_sampler_chain_init(llama_sampler_chain_default_params()); // Initialize the sampler with default parameters
-	/*string grammar = loadFile("grammar.gbnf"); //GRAMMAR DO NOT USE NOT STABLE
-	if(!grammar.empty()) llama_sampler_chain_add(sampler, llama_sampler_init_grammar(llama_model_get_vocab(model), grammar.c_str(), "root"));*/
 	llama_sampler_chain_add(sampler, llama_sampler_init_penalties(64, 1.1f, 0.0f, 0.0f));	
 	llama_sampler_chain_add(sampler, llama_sampler_init_temp(0.7f)); 
 	llama_sampler_chain_add(sampler, llama_sampler_init_dist(time(NULL)));
@@ -194,6 +194,10 @@ string Brain::execAction(int action, string JSON) {
 			cout.flush();
 			return boost::algorithm::join(results, ",");
 		}case 3: {
+			cout << "[Action] Saving Data to the RAG" << endl;
+			Interface::saveDataToRag(&this->rag, jsonResponse.value("content", ""), jsonResponse.value("source", ""), jsonResponse.value("importance", 0));
+			return "";
+		}case 4: {
 			cout << "[Action] Execute Python Code" << endl;
 			return python.executeString(jsonResponse.value("code", ""));
 		}default: {

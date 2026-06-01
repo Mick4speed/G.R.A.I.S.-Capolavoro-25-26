@@ -59,6 +59,27 @@ vector<string> extractHTML(string pageContent, string parseRegex) {
 	return urls;
 }
 
+void insertChunks(RAG_Memory* rag, vector<string> individualPhrases, string link) {
+	if (individualPhrases.empty()) return;
+	string chunk = individualPhrases.front();
+	for (int i = 1; i < individualPhrases.size(); i++) {
+		if (chunk.size() >= 200) {
+			rag->saveChunk(chunk, link, 60);
+			chunk = individualPhrases.at(i);
+			continue;
+		}
+		else if (RAG_Memory::areChunksCorrelated(rag, chunk, individualPhrases.at(i))) {
+			chunk += individualPhrases.at(i);
+		}
+		else {
+			rag->saveChunk(chunk, link, 60);
+			chunk = individualPhrases.at(i);
+		}
+	}
+	rag->saveChunk(chunk, link, 60);
+	rag->saveMemory();
+}
+
 void insertChunks(RAG_Memory *rag, vector<string> individualPhrases, string link, string query) {
 	if (individualPhrases.empty()) return;
 	string chunk = individualPhrases.front();
@@ -140,12 +161,21 @@ namespace Interface {
 		return url;
 	}
 
-	vector<string> getUrlFromQuery(string query) {
-		replace(query.begin(), query.end(), ' ', '+');
-		vector<string> url;
-		url.push_back("api.duckduckgo.com");
-		url.push_back("/?q=" + query + "&format=json&no_redirect=1");
-		return url;
+	void saveDataToRag(RAG_Memory* rag, string data, string source, int importance) {
+		vector<string> individualPhrases;
+		if (data.empty()) return;
+		int batchProcessed = 0;
+		while (!data.empty() && batchProcessed <= 10) {
+			string sub = data.substr(0, data.find_first_of('.'));
+			data = data.substr(data.find_first_of('.') + 1);
+			individualPhrases.push_back(sub);
+			if (individualPhrases.size() > 500) {
+				insertChunks(rag, individualPhrases, source);
+				individualPhrases.clear();
+				batchProcessed++;
+			}
+		}
+		insertChunks(rag, individualPhrases, source);
 	}
 
 	string analyze_HTML_Lexbor(lxb_dom_node_t* node){
@@ -217,7 +247,7 @@ namespace Interface {
 				//creating the http request
 				http::request<http::string_body> request{ http::verb::get, currentURL[1], 11}; // forzato HTTP/1.1 (11)
 				request.set(http::field::host, currentURL[0]);
-				request.set(http::field::user_agent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+				request.set(http::field::user_agent, "G.R.A.I.S.");
 				request.set(http::field::accept_language, "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7");
 				request.set(http::field::connection, "keep-alive");
 
@@ -265,28 +295,10 @@ namespace Interface {
 		return rag->search("Query: "+query);
 	}
 
-	vector<string> searchOnline(string query) {
-		vector<string> url = getUrlFromQuery(query);
-		string page = getWebPage(url);
-		return extractUrlsFromWebPage(page);
-	}
-
 	vector<string> retrieveDataFromInternet(RAG_Memory* rag, string link, string query) {
 		string site = getWebPage(getUrlFromString(link));
 		string data = sanitizePage(site);
-		vector<string> individualPhrases;
-		if (data.empty()) return vector<string>();
-		int batchProcessed = 0;
-		while (!data.empty()&&batchProcessed<=5) {
-			string sub = data.substr(0, data.find_first_of('.'));
-			data = data.substr(data.find_first_of('.') + 1);
-			individualPhrases.push_back(sub);
-			if (individualPhrases.size() > 500) {
-				insertChunks(rag, individualPhrases, link, query);
-				individualPhrases.clear();
-				batchProcessed++;
-			}
-		}
+		saveDataToRag(rag, data, link, 60);
 		return retrieveDataFromRAG(rag, query);
 	}
 
@@ -295,7 +307,8 @@ namespace Interface {
 			" 0 - Response: Return a response to the user and end the task, input:response (string), return none (void)\n"
 			" 1 - Retrieve data from RAG memory, input: query(string), return list of result (vector<string>)\n"
 			" 2 - Retrieve data from the internet page specified with the given query, input: url(string), query(string), return list of result(vector<string>)\n"
-			" 3 - Execute Python Code, input: code(string), return stdout of the python code (string)";
+			" 3 - Save data to the RAG Memory, input: content(string), source(string), importance(int), return none (void)\n"
+			" 4 - Execute Python Code, input: code(string), return stdout of the python code (string)";
 		vector<string> pythonDescriptions = python->getDescriptionList();
 		for (int i = 0; i < python->getToolSetSize(); i++) {
 			staticAction += "\n " + to_string(4 + i) + " - " + pythonDescriptions[i];

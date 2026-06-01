@@ -3,10 +3,9 @@
 #include "RAG_Memory.h"
 #include "PythonRuntime.h"
 
-//What we want the bot to be able to do, and how we want it to interact with the user.
-//Run generated code -- NOT IMPLEMENTED YET
+//Interface to beetwen Brain and Memory
+//Run generated code -- IMPLEMENTED
 //Search online -- IMPLEMENTED
-//Connect to Wi-Fi network -- NOT IMPLEMENTED YET, P.I.T.A.
 
 namespace Interface {
 	//CONSTANTS
@@ -20,11 +19,10 @@ namespace Interface {
 	std::vector<std::string> getUrlFromString(std::string string_url, std::vector<std::string> curUrl);
 
 	//PUBLIC
-	std::vector<std::string> getUrlFromQuery(std::string query); //BETA
+	void saveDataToRag(RAG_Memory* rag, std::string data, std::string source, int importance);
 	std::string sanitizePage(std::string pageContent);
 	std::string getWebPage(std::vector<std::string> url);
 	std::vector<std::string> retrieveDataFromRAG(RAG_Memory* rag, std::string query);
-	std::vector<std::string> searchOnline(std::string query);
 	std::vector<std::string> retrieveDataFromInternet(RAG_Memory* rag, std::string link, std::string query);
 	std::string getActionSummary(PythonRuntime* python);
 };
