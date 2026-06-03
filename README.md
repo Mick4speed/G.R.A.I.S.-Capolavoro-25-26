@@ -11,6 +11,7 @@
   - [Python Runtime](#python-runtime)
   - [Interface](#interface)
 - [Scaricare e Compilare G.R.A.I.S.](#scaricare-e-compilare-grais)
+- [Conclusioni](#conclusioni)
 - [Riferimenti](#riferimenti)
 
 ## Introduzione 
@@ -118,6 +119,14 @@ Ora bisogna che il percorso di Python impostati nel linker e nel compilatore del
 ## _“$(LOCALAPPDATA)\Programs\Python\Python313\include”_ 
 
 Ora aprendo il progetto (.vcxproj) o la soluzione (.sln) con visual studio, possiamo compilare ed eseguire GRAIS 
+
+## Conclusioni
+Dopo aver lavorato assiduamente a sviluppare GRAIS, sono riuscito a creare un sistema Agente che in grado di comunicare con l’utente attraverso una chat, che arricchisce le sue risposte attraverso informazioni prese dalla sua memoria o imparate dall’utente o da Internet, riesce a usare in modo appena sufficiente dei tool per portare a termine la richiesta dell’utente. Non eccelle nell’uso dei tool perché’ in fase di training li sono stati messi dei paletti, chiamati in linguaggio tecnico Guard-Rails, che li impediscono di apportare modifiche ai file sul computer, questo è evidente perché’ quando li viene chiesto di modificare file lui risponde all’utente con un testo JSON che contiene la chiamata al tool corretta, senza però fare niente.
+
+Questo problema potrebbe essere risolto in versioni future sia creando una LLM personalizzata senza Guard-Rails, ma che impiegherebbe tanto tempo e risorse, oppure implementando un sistema di self-improvement dove una seconda AI valuta la risposta del modello principale e salva in memoria sia il prompt che la risposta che la valutazione che li è stata data, questo sistema ha pure i suoi contro perché’ richiede più potenza di calcolo in fase di esecuzione. Anche se per avere il meglio del meglio bisognerebbe usare entrambe le opzioni.
+
+Poi inoltre si potrebbe migrare dall’attuale sistema di memoria che prevede due database distinti ad un sistema che li racchiude entrambi in uno, per esempio Milvus[20], e che sono in grado di contenere più di un 1.000.000 di elementi. Cosi si potrebbe pure sviluppare di più la memoria in modo che ricordi pure passate conversazioni.
+
 
 ## Riferimenti 
 
